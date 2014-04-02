@@ -1,1 +1,7 @@
-django
+Django==1.6.2
+Markdown==2.4
+South==0.8.4
+django-filter==0.7
+djangorestframework==2.3.13
+uWSGI==2.0.3
+wsgiref==0.1.2
