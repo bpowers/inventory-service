@@ -37,14 +37,21 @@ put: $(RPM)
 
 $(RPM): test_project
 	rm -rf $(PKGNAME)-$(VERSION)
+	$(PWD)/env/bin/python setup.py install
 	cp -a env $(PKGNAME)-$(VERSION)
+	pip uninstall --yes inventory-service
+	$(PWD)/env/bin/python setup.py develop
 	cp -a test_project/manage.py $(PKGNAME)-$(VERSION)
 	cp -a db.sqlite3 $(PKGNAME)-$(VERSION)
+	cp -a uwsgi.ini $(PKGNAME)-$(VERSION)
+	rm -rf static
+	$(PYTHON) test_project/manage.py collectstatic --noinput --settings=$(SETTINGS)
+	mv static $(PKGNAME)-$(VERSION)
 	find $(PKGNAME)-$(VERSION) -name '*.pyc' -print0 | xargs -0 rm -f
 	perl -pi -e 's|$(shell pwd)/env|/opt/$(NAME)|' $(PKGNAME)-$(VERSION)/bin/*
 	mkdir -p package/{RPMS,BUILD,SOURCES,BUILDROOT}
 	tar -czf package/SOURCES/$(PKGNAME)-$(VERSION).tar.gz $(PKGNAME)-$(VERSION)
-#	rm -rf $(PKGNAME)-$(VERSION)
+	rm -rf $(PKGNAME)-$(VERSION)
 	cat server.service.in | sed "s/%NAME%/$(NAME)/g" >package/SOURCES/server.service
 	cat server.spec.in | sed "s/%NAME%/$(NAME)/g" | sed "s/%VERSION%/$(VERSION)/g" >server.spec
 	rpmbuild --define "_topdir $(PWD)/package" -ba server.spec
@@ -96,4 +103,4 @@ clean:
 distclean: clean
 	rm -rf env test_project
 
-.PHONY: clean distclean all prereqs build test coverage style server shell dbshell migrate fake-migrate schemamigration
+.PHONY: clean distclean all prereqs build test coverage style server shell dbshell migrate fake-migrate schemamigration $(RPM)

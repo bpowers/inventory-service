@@ -4,3 +4,7 @@ env
 db.sqlite3
 *.egg-info
 /test_project
+/package
+/dist
+/build
+server.spec

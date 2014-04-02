@@ -3,7 +3,7 @@ Description=%NAME% service
 After=syslog.target network.target
 
 [Service]
-ExecStart=/opt/%NAME%/bin/python /opt/%NAME%/manage.py runserver
+ExecStart=/opt/%NAME%/bin/uwsgi /opt/%NAME%/uwsgi.ini
 WorkingDirectory=/opt/%NAME%
 User=%NAME%
 Restart=always
