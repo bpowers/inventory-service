@@ -2,6 +2,13 @@
 PROJECT := $(shell grep 'name=' setup.py | head -n1 | cut -d '=' -f 2 | sed "s/['\", ]//g")
 PYTHON := $(PWD)/env/bin/python
 
+VERSION := 0.1
+NAME := inventory
+
+PKGNAME := inventory-service
+RPMSHORT := $(PKGNAME)-$(VERSION)-1.fc$(shell head -n1 /etc/issue | cut -d ' ' -f 3).x86_64.rpm
+RPM := package/RPMS/x86_64/$(RPMSHORT)
+
 SETTINGS := $(PROJECT).settings
 
 # first rule in a makefile is the default one, calling it "all" is a
@@ -23,6 +30,25 @@ env/bin/django-admin.py: env
 test_project: env env/bin/django-admin.py
 	@echo "  PROJ update"
 	$(PWD)/env/bin/django-admin.py startproject test_project >/dev/null || touch -c test_project
+
+put: $(RPM)
+	rsync -az $(RPM) sdlabs.io:.
+	ssh sdlabs.io -t sudo rpm --force -fvi ./$(RPMSHORT)
+
+$(RPM): test_project
+	rm -rf $(PKGNAME)-$(VERSION)
+	cp -a env $(PKGNAME)-$(VERSION)
+	cp -a test_project/manage.py $(PKGNAME)-$(VERSION)
+	cp -a db.sqlite3 $(PKGNAME)-$(VERSION)
+	find $(PKGNAME)-$(VERSION) -name '*.pyc' -print0 | xargs -0 rm -f
+	perl -pi -e 's|$(shell pwd)/env|/opt/$(NAME)|' $(PKGNAME)-$(VERSION)/bin/*
+	mkdir -p package/{RPMS,BUILD,SOURCES,BUILDROOT}
+	tar -czf package/SOURCES/$(PKGNAME)-$(VERSION).tar.gz $(PKGNAME)-$(VERSION)
+#	rm -rf $(PKGNAME)-$(VERSION)
+	cat server.service.in | sed "s/%NAME%/$(NAME)/g" >package/SOURCES/server.service
+	cat server.spec.in | sed "s/%NAME%/$(NAME)/g" | sed "s/%VERSION%/$(VERSION)/g" >server.spec
+	rpmbuild --define "_topdir $(PWD)/package" -ba server.spec
+	rm -rf package/{BUILD,BUILDROOT}
 
 prereqs: test_project
 

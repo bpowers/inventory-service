@@ -4,13 +4,22 @@ from django.contrib import admin
 admin.autodiscover()
 
 from .models import *
-from rest_framework import viewsets, routers
+from rest_framework import routers, viewsets, serializers
+
+class ItemSerializer(serializers.HyperlinkedModelSerializer):
+    class Meta:
+        model = Item
+        depth = 2
 
 class AttributeViewSet(viewsets.ModelViewSet):
     model = Attribute
 
+class AttributeValViewSet(viewsets.ModelViewSet):
+    model = AttributeVal
+
 class ItemViewSet(viewsets.ModelViewSet):
     model = Item
+    serializer_class = ItemSerializer
 
 class CategoryViewSet(viewsets.ModelViewSet):
     model = Category
@@ -18,6 +27,7 @@ class CategoryViewSet(viewsets.ModelViewSet):
 
 router = routers.DefaultRouter()
 router.register(r'attribute', AttributeViewSet)
+router.register(r'attribute_val', AttributeValViewSet)
 router.register(r'category', CategoryViewSet)
 router.register(r'item', ItemViewSet)
 
