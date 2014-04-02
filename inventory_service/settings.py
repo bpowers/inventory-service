@@ -37,6 +37,7 @@ INSTALLED_APPS = (
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'south',
+    'rest_framework',
     'inventory_service',
 )
 
@@ -53,6 +54,13 @@ ROOT_URLCONF = 'inventory_service.urls'
 
 WSGI_APPLICATION = 'inventory_service.wsgi.application'
 
+REST_FRAMEWORK = {
+    'DEFAULT_MODEL_SERIALIZER_CLASS':
+        'rest_framework.serializers.HyperlinkedModelSerializer',
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.DjangoModelPermissionsOrAnonReadOnly'
+    ]
+}
 
 # Database
 # https://docs.djangoproject.com/en/1.6/ref/settings/#databases
